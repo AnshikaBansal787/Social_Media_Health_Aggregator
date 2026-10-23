@@ -1,0 +1,23 @@
+{
+  "name": "social-media-status-aggregator",
+  "version": "1.0.0",
+  "description": "Full-stack Social Media Health & Status Aggregator application with dark-themed dashboard UI",
+  "scripts": {
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:start": "npm --prefix backend start",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:preview": "npm --prefix frontend run preview"
+  },
+  "keywords": [
+    "status-dashboard",
+    "uptime-monitor",
+    "social-media",
+    "cron",
+    "express",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "license": "MIT"
+}
