@@ -64,32 +64,30 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Start Express server only when running standalone (not in Vercel Serverless)
-if (!process.env.VERCEL) {
-  const server = app.listen(PORT, () => {
-    console.log(`=======================================================`);
-    console.log(` Social Media Health & Status Aggregator API`);
-    console.log(` Server running on http://localhost:${PORT}`);
-    console.log(` Health endpoint: http://localhost:${PORT}/api/health`);
-    console.log(` Status endpoint: http://localhost:${PORT}/api/status`);
-    console.log(`=======================================================`);
+// Start Express server
+const server = app.listen(PORT, () => {
+  console.log(`=======================================================`);
+  console.log(` Social Media Health & Status Aggregator API`);
+  console.log(` Server running on http://localhost:${PORT}`);
+  console.log(` Health endpoint: http://localhost:${PORT}/api/health`);
+  console.log(` Status endpoint: http://localhost:${PORT}/api/status`);
+  console.log(`=======================================================`);
 
-    // Start background cron monitoring (every 30 seconds)
-    startCronJob();
+  // Start background cron monitoring (every 30 seconds)
+  startCronJob();
+});
+
+// Graceful shutdown
+const shutdown = (signal) => {
+  console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+  stopCronJob();
+  server.close(() => {
+    console.log('Server closed. Process terminated.');
+    process.exit(0);
   });
+};
 
-  // Graceful shutdown
-  const shutdown = (signal) => {
-    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
-    stopCronJob();
-    server.close(() => {
-      console.log('Server closed. Process terminated.');
-      process.exit(0);
-    });
-  };
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-}
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 export default app;
