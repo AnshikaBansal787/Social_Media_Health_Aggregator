@@ -256,10 +256,16 @@ export async function pollAllPlatforms() {
 }
 
 /**
- * Returns latest cached status data or performs initial poll if empty
+ * Returns latest cached status data or performs poll if cache is empty or older than 30s
  */
 export async function getCachedStatus() {
-  if (!cachedResult) {
+  const CACHE_TTL_MS = 30000; // 30 seconds TTL
+  const isCacheExpired =
+    cachedResult &&
+    cachedResult.timestamp &&
+    Date.now() - new Date(cachedResult.timestamp).getTime() > CACHE_TTL_MS;
+
+  if (!cachedResult || isCacheExpired) {
     return await pollAllPlatforms();
   }
   return cachedResult;

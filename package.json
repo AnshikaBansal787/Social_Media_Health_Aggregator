@@ -1,13 +1,23 @@
 {
   "name": "social-media-status-aggregator",
   "version": "1.0.0",
+  "type": "module",
   "description": "Full-stack Social Media Health & Status Aggregator application with dark-themed dashboard UI",
   "scripts": {
+    "build": "cd frontend && npm install && npm run build",
     "backend:dev": "npm --prefix backend run dev",
     "backend:start": "npm --prefix backend start",
     "frontend:dev": "npm --prefix frontend run dev",
     "frontend:build": "npm --prefix frontend run build",
     "frontend:preview": "npm --prefix frontend run preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3",
+    "rss-parser": "^3.13.0"
   },
   "keywords": [
     "status-dashboard",
