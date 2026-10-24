@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { PLATFORMS } from './platformConfig.js';
 
+export const LATENCY_THRESHOLDS = {
+  OPERATIONAL_MAX_MS: 850,
+  DOWN_TIMEOUT_MS: 7000
+};
+
 // In-memory store for latency history and uptime counters
 const historyStore = new Map();
 const uptimeStore = new Map();
@@ -65,7 +70,7 @@ async function checkPlatformHealth(platform) {
 
   try {
     const response = await axios.get(platform.pingUrl, {
-      timeout: 7000,
+      timeout: LATENCY_THRESHOLDS.DOWN_TIMEOUT_MS,
       headers,
       maxRedirects: 5,
       validateStatus: () => true // Allow any status code without throwing Axios error
@@ -75,16 +80,16 @@ async function checkPlatformHealth(platform) {
     latencyMs = Math.round(endTime - startTime);
     httpStatusCode = response.status;
 
-    // Check status by HTTP response
+    // Check status by HTTP response & latency thresholds: Operational (<850ms), Degraded (>850ms), Down (>7s / 5xx)
     if (httpStatusCode >= 500) {
       status = 'Down';
       statusMessage = `Server error (HTTP ${httpStatusCode})`;
     } else if (httpStatusCode === 429) {
       status = 'Degraded';
       statusMessage = 'Rate limiting / high traffic load';
-    } else if (latencyMs > 850) {
+    } else if (latencyMs > LATENCY_THRESHOLDS.OPERATIONAL_MAX_MS) {
       status = 'Degraded';
-      statusMessage = `High network latency (${latencyMs}ms)`;
+      statusMessage = `High latency (${latencyMs}ms > ${LATENCY_THRESHOLDS.OPERATIONAL_MAX_MS}ms)`;
     } else {
       status = 'Operational';
       statusMessage = `Responsive (${httpStatusCode}) in ${latencyMs}ms`;
@@ -93,7 +98,9 @@ async function checkPlatformHealth(platform) {
     const endTime = performance.now();
     latencyMs = Math.round(endTime - startTime);
     status = 'Down';
-    statusMessage = err.code === 'ECONNABORTED' ? 'Connection timed out (>7s)' : (err.message || 'Host unreachable');
+    statusMessage = err.code === 'ECONNABORTED'
+      ? `Connection timed out (>${LATENCY_THRESHOLDS.DOWN_TIMEOUT_MS / 1000}s)`
+      : (err.message || 'Host unreachable');
     httpStatusCode = 0;
   }
 
@@ -242,7 +249,12 @@ export async function pollAllPlatforms() {
         downCount,
         avgLatencyMs: avgLatency,
         overallStatus,
-        systemHealthScore: Math.round((operationalCount / results.length) * 100)
+        systemHealthScore: Math.round((operationalCount / results.length) * 100),
+        thresholds: {
+          operationalMaxMs: LATENCY_THRESHOLDS.OPERATIONAL_MAX_MS,
+          degradedMinMs: LATENCY_THRESHOLDS.OPERATIONAL_MAX_MS,
+          downTimeoutMs: LATENCY_THRESHOLDS.DOWN_TIMEOUT_MS
+        }
       },
       platforms: results.map(({ incidents, ...rest }) => rest),
       incidents: mergedIncidents.slice(0, 8)

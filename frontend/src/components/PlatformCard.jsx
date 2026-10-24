@@ -58,12 +58,11 @@ export function PlatformCard({ platform }) {
     }
   };
 
-  // Latency styling & speed indicator
+  // Latency styling & speed indicator: Operational (< 850ms), Degraded (> 850ms), Down (> 7s / unreachable)
   const getLatencyStyle = (latency) => {
-    if (latency <= 0) return { color: 'text-slate-500', label: 'Unreachable' };
-    if (latency < 200) return { color: 'text-emerald-400', label: 'Fast' };
-    if (latency < 500) return { color: 'text-amber-400', label: 'Moderate' };
-    return { color: 'text-rose-400', label: 'High' };
+    if (latency <= 0 || latency >= 7000) return { color: 'text-rose-400', label: 'Down' };
+    if (latency <= 850) return { color: 'text-emerald-400', label: 'Operational' };
+    return { color: 'text-amber-400', label: 'Degraded' };
   };
 
   const latencyMeta = getLatencyStyle(latencyMs);
@@ -156,9 +155,9 @@ export function PlatformCard({ platform }) {
                   Math.min(100, Math.round((sample.latency / maxHistoryLatency) * 100))
                 );
                 const barColor =
-                  sample.status === 'Down'
+                  sample.status === 'Down' || sample.latency >= 7000
                     ? 'bg-rose-500'
-                    : sample.latency > 500
+                    : sample.latency > 850
                     ? 'bg-amber-400'
                     : 'bg-indigo-500 hover:bg-indigo-400';
 

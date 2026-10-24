@@ -10,9 +10,9 @@ export function StatsOverview({ summary, platformsCount, incidentsCount }) {
   const healthScore = summary?.systemHealthScore ?? (totalPlatforms > 0 ? Math.round((operationalCount / totalPlatforms) * 100) : 100);
 
   const getLatencyColor = (latency) => {
-    if (latency < 200) return 'text-emerald-400';
-    if (latency < 500) return 'text-amber-400';
-    return 'text-rose-400';
+    if (latency <= 0 || latency >= 7000) return 'text-rose-400';
+    if (latency <= 850) return 'text-emerald-400';
+    return 'text-amber-400';
   };
 
   return (
@@ -96,7 +96,7 @@ export function StatsOverview({ summary, platformsCount, incidentsCount }) {
           <span className="text-xs font-semibold font-mono text-slate-400">ms</span>
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Global roundtrip response average across all edge probes
+          Operational: &lt;850ms &bull; Degraded: &gt;850ms &bull; Down: &gt;7s
         </p>
       </div>
 
